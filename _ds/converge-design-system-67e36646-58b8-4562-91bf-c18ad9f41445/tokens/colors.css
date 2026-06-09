@@ -1,0 +1,112 @@
+/* Converge — Color tokens · LIGHT MODE
+   Premium tech · glassmorphic · light high-contrast.
+   The slate ramp is a fixed "ink" ramp (950 = near-black-navy … 050 = near-white).
+   Light surfaces draw from the light end; text from the dark end.
+   Prefer the semantic aliases in product code.
+   ------------------------------------------------------------------------- */
+:root {
+  /* ---- Ink ramp (cool slate-navy) — fixed, not theme-flipped ------------ */
+  --slate-980: #05070E;
+  --slate-950: #070A12;
+  --slate-900: #0B0F1A;
+  --slate-850: #111726;
+  --slate-800: #16233C;
+  --slate-700: #25344F;
+  --slate-600: #3B4F70;
+  --slate-500: #5B7099;
+  --slate-400: #7C8FB3;
+  --slate-300: #9EAFCD;
+  --slate-200: #C2CFE2;
+  --slate-150: #D6E0EE;
+  --slate-100: #E5ECF5;
+  --slate-075: #EEF2F8;
+  --slate-050: #F5F8FC;
+  --white:     #FFFFFF;
+
+  /* ---- Primary: electric blue (from the mark) --------------------------- */
+  --blue-200: #B9D4FF;
+  --blue-300: #7FB4FF;
+  --blue-400: #4D90FF;
+  --blue-500: #2D7FF9;   /* primary */
+  --blue-600: #1C63D6;
+  --blue-700: #1A4FA8;
+  --blue-800: #163A77;
+
+  /* ---- Accent: convergence cyan / root glow ----------------------------- */
+  --cyan-200: #C2F0FF;
+  --cyan-300: #8DE6FF;
+  --cyan-400: #2BC4EE;   /* accent (deepened for light-bg contrast) */
+  --cyan-500: #12A6D6;
+  --cyan-600: #0C82AC;
+
+  /* ---- Data-viz hues (method differentiation) --------------------------- */
+  --amber-300: #F0A53A;
+  --amber-400: #E8902A;  /* Newton tangent (deepened for white bg) */
+  --amber-500: #C9761A;
+  --violet-400: #7B5BE0;
+  --emerald-400: #12A66B;
+  --emerald-500: #0E8A58;
+  --coral-400: #F0455E;  /* invalid / danger */
+  --coral-500: #D62A45;
+
+  /* ---- Semantic surfaces (LIGHT) --------------------------------------- */
+  --surface-base:    #EBF0F7;   /* app background — pale cool */
+  --surface-canvas:  #FFFFFF;   /* plot canvas backdrop (white) */
+  --surface-sunken:  #E1E8F2;   /* inset wells, fields, code blocks */
+  --surface-panel:   #FFFFFF;   /* solid panels */
+  --surface-raised:  #FFFFFF;   /* cards, popovers */
+  --surface-overlay: #FFFFFF;   /* dialogs, menus */
+
+  /* Glass — translucent WHITE fills over the canvas with backdrop-blur ----- */
+  --glass-fill:        rgba(255, 255, 255, 0.62);
+  --glass-fill-strong: rgba(255, 255, 255, 0.84);
+  --glass-fill-faint:  rgba(45, 127, 249, 0.06);
+  --glass-stroke:        rgba(22, 35, 60, 0.10);
+  --glass-stroke-strong: rgba(22, 35, 60, 0.16);
+  --glass-highlight:   rgba(255, 255, 255, 0.85);
+
+  /* ---- Control internals (track/thumb) --------------------------------- */
+  --control-track: #C8D4E6;
+  --control-thumb: #FFFFFF;
+
+  /* ---- Text ------------------------------------------------------------- */
+  --text-primary:   #142136;
+  --text-secondary: #44597B;
+  --text-tertiary:  #6B7E9E;
+  --text-muted:     #93A3BE;
+  --text-inverse:   #FFFFFF;
+  --text-accent:    var(--cyan-600);
+  --text-link:      var(--blue-600);
+
+  /* ---- Borders ---------------------------------------------------------- */
+  --border-subtle:  rgba(22, 35, 60, 0.07);
+  --border-default: rgba(22, 35, 60, 0.12);
+  --border-strong:  rgba(22, 35, 60, 0.20);
+  --border-focus:   var(--blue-500);
+
+  /* ---- Brand / interactive --------------------------------------------- */
+  --brand-primary:   var(--blue-500);
+  --brand-primary-hover: var(--blue-400);
+  --brand-primary-press: var(--blue-600);
+  --brand-accent:    var(--cyan-400);
+  --brand-on-primary: #FFFFFF;
+
+  /* ---- State semantics -------------------------------------------------- */
+  --success: var(--emerald-400);
+  --warning: var(--amber-400);
+  --danger:  var(--coral-400);
+  --info:    var(--blue-500);
+
+  /* ---- Visualization aliases (graph layers, on white canvas) ------------ */
+  --viz-curve:    var(--slate-800);   /* the f(x) plot — dark ink on white */
+  --viz-axis:     var(--slate-400);
+  --viz-grid:     rgba(22, 35, 60, 0.06);
+  --viz-grid-strong: rgba(22, 35, 60, 0.12);
+  --viz-point:    var(--blue-500);
+  --viz-root:     var(--cyan-500);    /* converged root, glowing */
+  --viz-interval: rgba(45, 127, 249, 0.12);  /* Bisection [a,b] shade */
+  --viz-interval-edge: var(--blue-500);
+  --viz-midpoint: var(--cyan-500);
+  --viz-tangent:  var(--amber-400);   /* Newton tangent line */
+  --viz-ghost:    rgba(91, 112, 153, 0.30); /* faded prior iterations */
+}

@@ -1,0 +1,52 @@
+/* Converge — base layer: resets, document defaults, primitive utilities.
+   Imported by styles.css after tokens so it can reference them.
+   ------------------------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+body {
+  font: var(--type-body);
+  color: var(--text-primary);
+  background: var(--surface-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'ss01', 'cv01';
+}
+
+::selection { background: rgba(45, 127, 249, 0.20); color: var(--text-primary); }
+
+h1, h2, h3, h4 { font-family: var(--font-display); font-weight: var(--weight-semibold); line-height: var(--leading-snug); letter-spacing: var(--tracking-tight); color: var(--text-primary); }
+
+a { color: var(--text-link); text-decoration: none; }
+a:hover { color: var(--blue-200); }
+
+code, pre, kbd, samp { font-family: var(--font-mono); }
+
+button { font-family: inherit; }
+
+/* Numeric data: tabular figures so decimal columns align in tables */
+.tabular { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-feature-settings: 'tnum' 1, 'zero' 1; }
+
+/* Eyebrow / overline label */
+.eyebrow {
+  font-family: var(--font-sans);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-widest);
+  text-transform: uppercase;
+  color: var(--text-tertiary);
+}
+
+/* Thin custom scrollbars for dark panels */
+.scroll-thin { scrollbar-width: thin; scrollbar-color: var(--slate-300) transparent; }
+.scroll-thin::-webkit-scrollbar { width: 10px; height: 10px; }
+.scroll-thin::-webkit-scrollbar-thumb { background: var(--slate-300); border-radius: 999px; border: 3px solid transparent; background-clip: content-box; }
+.scroll-thin::-webkit-scrollbar-thumb:hover { background: var(--slate-400); }
+.scroll-thin::-webkit-scrollbar-track { background: transparent; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+}

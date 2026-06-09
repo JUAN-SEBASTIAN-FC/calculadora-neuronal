@@ -1,0 +1,9 @@
+/* Converge — Webfonts
+   Loaded from Google Fonts CDN. See readme.md → VISUAL FOUNDATIONS for the
+   substitution note. Swap these @import lines for bundled @font-face rules if
+   self-hosting is required.
+
+   Display / UI : Space Grotesk  — geometric grotesk, technical & precise
+   Monospace    : JetBrains Mono — numeric tables, function input, code
+*/
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');

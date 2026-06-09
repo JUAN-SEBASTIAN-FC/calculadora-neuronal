@@ -1,0 +1,51 @@
+/* Converge — Spacing & sizing tokens
+   4px base grid. Use --space-* for padding/margins/gap.
+   ------------------------------------------------------------------------- */
+:root {
+  --space-0: 0;
+  --space-px: 1px;
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-1-5: 6px;
+  --space-2: 8px;
+  --space-2-5: 10px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+
+  /* ---- Layout ----------------------------------------------------------- */
+  --sidebar-width: 360px;
+  --table-panel-width: 420px;
+  --topbar-height: 64px;
+  --transport-height: 56px;
+  --container-max: 1440px;
+
+  /* ---- Control sizing (44px min hit target for primary actions) --------- */
+  --control-height-sm: 32px;
+  --control-height-md: 40px;
+  --control-height-lg: 48px;
+  --field-height: 44px;
+
+  /* ---- Radii ------------------------------------------------------------ */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+  --radius-2xl: 28px;
+  --radius-pill: 999px;
+  --radius-circle: 50%;
+
+  /* ---- Borders ---------------------------------------------------------- */
+  --stroke-hairline: 1px;
+  --stroke-thin: 1.5px;
+  --stroke-medium: 2px;
+}

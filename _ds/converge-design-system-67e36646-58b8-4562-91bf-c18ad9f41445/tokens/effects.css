@@ -1,0 +1,44 @@
+/* Converge — Effects: elevation, glass, glow, blur · LIGHT MODE
+   Light UI uses real (soft, cool) shadows for elevation, white glass for
+   translucency, and restrained colored glow for accents + the converged root.
+   ------------------------------------------------------------------------- */
+:root {
+  /* ---- Elevation (soft, cool, low-opacity navy) ------------------------- */
+  --shadow-xs: 0 1px 2px rgba(22, 35, 60, 0.06);
+  --shadow-sm: 0 2px 6px rgba(22, 35, 60, 0.08);
+  --shadow-md: 0 8px 24px rgba(22, 35, 60, 0.10);
+  --shadow-lg: 0 18px 44px rgba(22, 35, 60, 0.14);
+  --shadow-xl: 0 30px 72px rgba(22, 35, 60, 0.18);
+
+  /* Glossy top edge for glass panels + a faint outline for solid surfaces */
+  --inset-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  --inset-hairline:  inset 0 0 0 1px rgba(22, 35, 60, 0.06);
+
+  /* ---- Glow (focus, accents, the converged root) ----------------------- */
+  --glow-blue:   0 0 0 1px rgba(45,127,249,0.35), 0 6px 16px rgba(45,127,249,0.28);
+  --glow-cyan:   0 0 0 1px rgba(18,166,214,0.40), 0 4px 18px rgba(18,166,214,0.32);
+  --glow-cyan-lg: 0 0 0 2px rgba(18,166,214,0.30), 0 6px 26px rgba(18,166,214,0.40);
+  --glow-amber:  0 0 0 1px rgba(232,144,42,0.38), 0 4px 16px rgba(232,144,42,0.28);
+  --glow-danger: 0 0 0 1px rgba(240,69,94,0.35), 0 4px 16px rgba(240,69,94,0.25);
+
+  /* Focus ring — used on interactive controls */
+  --focus-ring: 0 0 0 2px var(--surface-canvas), 0 0 0 4px rgba(45,127,249,0.55);
+
+  /* ---- Glass composition (apply with backdrop-filter) ------------------- */
+  --blur-sm: blur(8px) saturate(115%);   /* @kind other */
+  --blur-md: blur(16px) saturate(125%);  /* @kind other */
+  --blur-lg: blur(26px) saturate(135%);  /* @kind other */
+
+  /* Card stacks (border + elevation + inner light) */
+  --elev-card:  var(--shadow-md), var(--inset-highlight);
+  --elev-panel: var(--shadow-lg), var(--inset-highlight);
+  --elev-popover: var(--shadow-xl), var(--inset-hairline);
+
+  /* ---- Decorative gradients -------------------------------------------- */
+  --grad-brand: linear-gradient(135deg, var(--blue-500), var(--cyan-400)); /* @kind color */
+  --grad-brand-soft: linear-gradient(135deg, rgba(45,127,249,0.10), rgba(43,196,238,0.08)); /* @kind color */
+  --grad-surface: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0)); /* @kind color */
+  /* Radial aura tinting the app background behind the canvas hero */
+  --grad-aura: radial-gradient(120% 90% at 72% 8%, rgba(45,127,249,0.10), transparent 58%),
+               radial-gradient(90% 80% at 12% 96%, rgba(43,196,238,0.08), transparent 60%); /* @kind color */
+}
