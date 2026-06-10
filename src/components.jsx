@@ -48,15 +48,17 @@ function IconButton({
   ...rest
 }) {
   const ref = useRef(null);
+  // El ícono lo maneja Lucide, NO React. Por eso el botón queda vacío en el
+  // JSX y aquí, en cada cambio de 'icon', ponemos nosotros mismos un <i> nuevo
+  // y dejamos que Lucide lo convierta en <svg>. Así React nunca intenta tocar
+  // los nodos que Lucide reemplaza (eso causaba el error removeChild). Esto
+  // permite además que el ícono cambie en vivo, ej. play <-> pause.
   useEffect(() => {
-    if (ref.current) {
-      createIcons({
-        icons,
-        nameAttr: 'data-lucide',
-        root: ref.current
-      });
-    }
-  });
+    const el = ref.current;
+    if (!el) return;
+    el.innerHTML = `<i data-lucide="${icon}"></i>`;
+    createIcons({ icons, nameAttr: 'data-lucide', root: el });
+  }, [icon]);
   const cls = [
     'cvg-iconbtn',
     variant !== 'default' && `cvg-iconbtn--${variant}`,
@@ -65,9 +67,7 @@ function IconButton({
     className,
   ].filter(Boolean).join(' ');
   return (
-    <button ref={ref} className={cls} aria-label={label} aria-pressed={active || undefined} {...rest}>
-      <i data-lucide={icon}></i>
-    </button>
+    <button ref={ref} className={cls} aria-label={label} aria-pressed={active || undefined} {...rest}></button>
   );
 }
 
