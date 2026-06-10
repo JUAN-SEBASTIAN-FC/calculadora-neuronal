@@ -234,7 +234,7 @@
 .main > * { min-width: 0; }
 .rail { grid-area: rail; border-right: 1px solid var(--border-default); padding: var(--space-6) var(--space-5); overflow-y: auto; overflow-x: hidden;
   display: flex; flex-direction: column; gap: var(--space-6); background: color-mix(in srgb, var(--surface-panel) 86%, transparent); }
-.stage { grid-area: stage; padding: var(--space-5); min-width: 0; display: flex; flex-direction: column; gap: var(--space-4); }
+.stage { grid-area: stage; padding: var(--space-4); min-width: 0; display: flex; flex-direction: column; gap: var(--space-3); }
 .tablecol { grid-area: table; border-left: 1px solid var(--border-default); display: flex; flex-direction: column; min-height: 0;
   background: color-mix(in srgb, var(--surface-panel) 86%, transparent); }
 
@@ -277,7 +277,7 @@
 .ministat .ms-k { font-size: var(--text-2xs); font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
 .ministat .ms-v { font-family: var(--font-mono); font-size: var(--text-sm); font-weight: 700; color: var(--text-tertiary); }
 
-.plot-wrap { position: relative; flex: 1 1 auto; min-height: 260px; cursor: grab;
+.plot-wrap { position: relative; flex: 1 1 auto; min-height: 420px; cursor: grab;
   background:
     linear-gradient(to right, var(--viz-grid) 1px, transparent 1px),
     linear-gradient(to bottom, var(--viz-grid) 1px, transparent 1px);
@@ -327,6 +327,56 @@
   color: var(--text-muted); background: var(--glass-fill-strong); backdrop-filter: var(--blur-sm); -webkit-backdrop-filter: var(--blur-sm);
   padding: 5px 10px; border-radius: var(--radius-pill); border: 1px solid var(--glass-stroke);
   pointer-events: none; box-shadow: var(--shadow-xs); display: flex; align-items: center; gap: 6px; }
+
+/* ---------------------------------------------------------------------------
+   6b · LIENZO INTERACTIVO (zoom / desplazamiento / animaciones)
+   Solo afecta a la visualización; no cambia la matemática.
+   --------------------------------------------------------------------------- */
+
+/* La gráfica viva ocupa todo el lienzo, sin centrarse como la decorativa. */
+.plot-scene--live { display: block; }
+.plot-svg--interactive { cursor: grab; touch-action: none; }
+.plot-svg--interactive:active { cursor: grabbing; }
+
+/* Eje vertical x=0 con el mismo estilo discreto del horizontal. */
+.pl-axis--y { stroke: var(--viz-axis); stroke-width: 1.4; opacity: 0.45; }
+
+/* --- Animación: la curva se "dibuja" sola al cambiar de función --- */
+.pl-curve--draw {
+  stroke-dasharray: 4000;
+  stroke-dashoffset: 4000;
+  animation: curveDraw 1100ms var(--ease-out) forwards;
+}
+@keyframes curveDraw { to { stroke-dashoffset: 0; } }
+
+/* --- Bisección: intervalo, marcas y caída al punto medio --- */
+.pl-interval { stroke: var(--violet-400, #6D5BFF); stroke-width: 5; stroke-linecap: round; opacity: 0.55; }
+.pl-tick { stroke: var(--violet-400, #6D5BFF); stroke-width: 2.5; }
+.pl-drop { stroke: var(--cyan-400); stroke-width: 1.8; stroke-dasharray: 5 5; opacity: 0.7; }
+.pl-on-curve { fill: var(--cyan-400); stroke: #fff; stroke-width: 1.5; }
+:root[data-theme="dark"] .pl-on-curve { stroke: #0E1426; }
+.pl-on-curve--newton { fill: var(--violet-400, #6D5BFF); }
+
+/* --- Newton: recta tangente --- */
+.pl-tangent {
+  stroke: var(--amber-500, #F5A524); stroke-width: 2.6; stroke-linecap: round;
+  filter: drop-shadow(0 2px 8px rgba(245,165,36,0.4));
+}
+
+/* --- Animación: los elementos del paso aparecen suaves, no de golpe --- */
+.pl-step { animation: stepIn 420ms var(--ease-out); }
+@keyframes stepIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* La tangente y el intervalo se "dibujan" de su origen hacia el destino. */
+.pl-step .pl-tangent, .pl-step .pl-interval {
+  stroke-dasharray: 1400; stroke-dashoffset: 1400;
+  animation: lineGrow 520ms var(--ease-out) 80ms forwards;
+}
+@keyframes lineGrow { to { stroke-dashoffset: 0; } }
+
+/* El punto raíz del paso hace un pequeño "pop" al aparecer. */
+.pl-root--pop { transform-box: fill-box; transform-origin: center; animation: rootPop 480ms var(--ease-out) 120ms backwards; }
+@keyframes rootPop { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.35); } 100% { transform: scale(1); opacity: 1; } }
 .plot-hint b { color: var(--text-secondary); font-weight: 700; }
 
 /* ---------------------------------------------------------------------------
