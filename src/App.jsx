@@ -1,9 +1,8 @@
-/* Convergencia — composición principal (shell de diseño, no funcional aún).
-   Sin motor matemático ni datos de prueba: campos vacíos, estados limpios.
-   Conserva la estructura de 3 zonas (rail · lienzo · tabla) y los componentes
-   del design system, con fondo decorativo, tema claro/oscuro y micro-animación. */
-const { useState, useEffect } = React;
-const { Button, IconButton, Badge, Input, NumberField, Tabs, Switch, Slider, Tooltip } = window;
+/* Convergencia — composición principal. */
+import React, { useState, useEffect } from 'react';
+import { createIcons, icons } from 'lucide';
+import Plot from './Plot';
+import { Button, IconButton, Badge, Input, NumberField, Tabs, Switch, Slider, Tooltip } from './components';
 
 /* ---------- Fondo decorativo: órbitas, lunas, líneas, partículas ---------- */
 function Backdrop() {
@@ -51,8 +50,17 @@ function App() {
   const [fadePast, setFadePast] = useState(true);
   const [speed, setSpeed] = useState(1.5);
 
-  useEffect(() => { document.documentElement.setAttribute('data-theme', theme); localStorage.setItem('cvg-theme', theme); }, [theme]);
-  useEffect(() => { window.lucide && window.lucide.createIcons(); });
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('cvg-theme', theme);
+  }, [theme]);
+
+  useEffect(() => {
+    createIcons({
+      icons,
+      nameAttr: 'data-lucide'
+    });
+  });
 
   const isBi = method === 'bisection';
 
@@ -63,7 +71,7 @@ function App() {
       <header className="topbar">
         <div className="brand">
           <span className="brand-logo">
-            <img src={theme === 'dark' ? 'assets/logo-orbit-light.png' : 'assets/logo-orbit-mark.png'} alt="" />
+            <img src={theme === 'dark' ? '/assets/logo-dark-theme.png' : '/assets/logo-light-theme.png'} alt="" />
           </span>
           <span className="name">Conver<b>ge</b></span>
           <span className="brand-tag">Métodos numéricos</span>
@@ -214,5 +222,4 @@ function App() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-setTimeout(() => window.lucide && window.lucide.createIcons(), 60);
+export default App;

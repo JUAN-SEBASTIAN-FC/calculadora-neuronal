@@ -1,11 +1,11 @@
-/* AUTO-GENERATED from components/ — kit-local copy so the UI kit renders
-   without the turn-gated _ds_bundle.js. Do not edit by hand. */
-const { useState, useRef, useEffect, useId } = React;
+/* AUTO-GENERATED from components/ — kit-local copy refactored for ESM. */
+import React, { useState, useRef, useEffect, useId } from 'react';
+import { createIcons, icons } from 'lucide';
 
 // ---- components/core/Button.jsx ----
 /**
  * Converge Button — primary action control.
- * Icons are Lucide names (rendered when the Lucide UMD script is present).
+ * Icons are Lucide names (rendered when the Lucide script is present).
  */
 function Button({
   variant = 'primary',
@@ -16,9 +16,15 @@ function Button({
   className = '',
   ...rest
 }) {
-  const ref = React.useRef(null);
-  React.useEffect(() => {
-    if (window.lucide && ref.current) window.lucide.createIcons({ nameAttr: 'data-lucide', root: ref.current });
+  const ref = useRef(null);
+  useEffect(() => {
+    if (ref.current) {
+      createIcons({
+        icons,
+        nameAttr: 'data-lucide',
+        root: ref.current
+      });
+    }
   });
   const cls = ['cvg-btn', `cvg-btn--${variant}`, `cvg-btn--${size}`, className].filter(Boolean).join(' ');
   return (
@@ -41,9 +47,15 @@ function IconButton({
   className = '',
   ...rest
 }) {
-  const ref = React.useRef(null);
-  React.useEffect(() => {
-    if (window.lucide && ref.current) window.lucide.createIcons({ nameAttr: 'data-lucide', root: ref.current });
+  const ref = useRef(null);
+  useEffect(() => {
+    if (ref.current) {
+      createIcons({
+        icons,
+        nameAttr: 'data-lucide',
+        root: ref.current
+      });
+    }
   });
   const cls = [
     'cvg-iconbtn',
@@ -113,7 +125,7 @@ function Input({
   required,
   ...rest
 }) {
-  const fid = id || React.useId();
+  const fid = id || useId();
   const cls = ['cvg-field', error && 'cvg-field--error', monoLabel && 'cvg-field--mono-label', className].filter(Boolean).join(' ');
   return (
     <div className={cls}>
@@ -135,7 +147,7 @@ function Input({
 // ---- components/forms/NumberField.jsx ----
 /** Numeric field with up/down steppers — iterations, x0, interval bounds. */
 function NumberField({ label, hint, error, value, onChange, step = 1, min, max, suffix, className = '', id, ...rest }) {
-  const fid = id || React.useId();
+  const fid = id || useId();
   const num = (v) => (v === '' || v == null ? 0 : parseFloat(v));
   const clamp = (v) => {
     if (min != null) v = Math.max(min, v);
@@ -166,9 +178,17 @@ function NumberField({ label, hint, error, value, onChange, step = 1, min, max, 
 // ---- components/forms/Select.jsx ----
 /** Native select, restyled. */
 function Select({ label, hint, options = [], value, onChange, className = '', id, children, ...rest }) {
-  const fid = id || React.useId();
-  const ref = React.useRef(null);
-  React.useEffect(() => { if (window.lucide && ref.current) window.lucide.createIcons({ nameAttr: 'data-lucide', root: ref.current }); });
+  const fid = id || useId();
+  const ref = useRef(null);
+  useEffect(() => {
+    if (ref.current) {
+      createIcons({
+        icons,
+        nameAttr: 'data-lucide',
+        root: ref.current
+      });
+    }
+  });
   return (
     <div className={['cvg-field', className].filter(Boolean).join(' ')}>
       {label && <label className="cvg-field__label" htmlFor={fid}><span>{label}</span></label>}
@@ -189,8 +209,16 @@ function Select({ label, hint, options = [], value, onChange, className = '', id
 // ---- components/forms/Tabs.jsx ----
 /** Segmented tabs. The signature use is the method switch (Bisección / Newton–Raphson). */
 function Tabs({ tabs = [], value, onChange, block = false, className = '' }) {
-  const ref = React.useRef(null);
-  React.useEffect(() => { if (window.lucide && ref.current) window.lucide.createIcons({ nameAttr: 'data-lucide', root: ref.current }); });
+  const ref = useRef(null);
+  useEffect(() => {
+    if (ref.current) {
+      createIcons({
+        icons,
+        nameAttr: 'data-lucide',
+        root: ref.current
+      });
+    }
+  });
   const cls = ['cvg-tabs', block && 'cvg-tabs--block', className].filter(Boolean).join(' ');
   return (
     <div className={cls} role="tablist" ref={ref}>
@@ -212,7 +240,7 @@ function Tabs({ tabs = [], value, onChange, block = false, className = '' }) {
 // ---- components/forms/Switch.jsx ----
 /** Toggle switch. */
 function Switch({ checked, onChange, label, id, ...rest }) {
-  const fid = id || React.useId();
+  const fid = id || useId();
   return (
     <label className="cvg-switch" htmlFor={fid}>
       <input id={fid} type="checkbox" checked={checked} onChange={onChange} {...rest} />
@@ -225,7 +253,7 @@ function Switch({ checked, onChange, label, id, ...rest }) {
 // ---- components/forms/Slider.jsx ----
 /** Range slider — playback speed, zoom level. */
 function Slider({ label, value, min = 0, max = 100, step = 1, onChange, format, className = '', id, ...rest }) {
-  const fid = id || React.useId();
+  const fid = id || useId();
   const display = format ? format(value) : value;
   return (
     <div className={['cvg-slider', className].filter(Boolean).join(' ')}>
@@ -312,8 +340,16 @@ const ICONS = { danger: 'alert-triangle', warning: 'alert-circle', info: 'info',
 
 /** Inline feedback banner. The invalid-function error state is the key use. */
 function Alert({ variant = 'info', title, children, icon, className = '' }) {
-  const ref = React.useRef(null);
-  React.useEffect(() => { if (window.lucide && ref.current) window.lucide.createIcons({ nameAttr: 'data-lucide', root: ref.current }); });
+  const ref = useRef(null);
+  useEffect(() => {
+    if (ref.current) {
+      createIcons({
+        icons,
+        nameAttr: 'data-lucide',
+        root: ref.current
+      });
+    }
+  });
   return (
     <div ref={ref} className={['cvg-alert', `cvg-alert--${variant}`, className].filter(Boolean).join(' ')} role="alert">
       <span className="cvg-alert__icon"><i data-lucide={icon || ICONS[variant]}></i></span>
@@ -325,4 +361,19 @@ function Alert({ variant = 'info', title, children, icon, className = '' }) {
   );
 }
 
-Object.assign(window, { Button, IconButton, Badge, Card, Input, NumberField, Select, Tabs, Switch, Slider, IterationTable, StatPill, Tooltip, Alert });
+export {
+  Button,
+  IconButton,
+  Badge,
+  Card,
+  Input,
+  NumberField,
+  Select,
+  Tabs,
+  Switch,
+  Slider,
+  IterationTable,
+  StatPill,
+  Tooltip,
+  Alert
+};

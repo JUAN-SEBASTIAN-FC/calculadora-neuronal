@@ -1,13 +1,10 @@
-/* Convergencia — Plot decorativo (limpio, no funcional).
-   Reemplaza el antiguo render con canvas. Dibuja una escena vectorial bonita:
-   una curva f(x) que cruza el eje, una fila de puntos de iteración que se
-   desvanecen acercándose a una raíz que brilla, anillos de órbita y guías.
-   Se re-tematiza solo vía variables CSS (clases .pl-*). Babel JSX → window.Plot. */
+/* Convergencia — Plot decorativo (limpio, no funcional). */
+import React, { useState, useEffect } from 'react';
 
 function Plot({ theme }) {
   // gentle staggered draw-in once mounted
-  const [on, setOn] = React.useState(false);
-  React.useEffect(() => { const id = requestAnimationFrame(() => setOn(true)); return () => cancelAnimationFrame(id); }, []);
+  const [on, setOn] = useState(false);
+  useEffect(() => { const id = requestAnimationFrame(() => setOn(true)); return () => cancelAnimationFrame(id); }, []);
 
   // convergence dots marching toward the glowing root at (markX) on the axis
   const axisY = 286;
@@ -76,4 +73,4 @@ function Plot({ theme }) {
   );
 }
 
-window.Plot = Plot;
+export default Plot;
