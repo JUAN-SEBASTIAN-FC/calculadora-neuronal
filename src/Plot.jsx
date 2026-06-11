@@ -240,9 +240,12 @@ const Plot = forwardRef(function Plot({ theme, method, fn, pasos, pasoActual, fa
         </defs>
 
         <g clipPath="url(#pl-clip)">
+          {/* Cuadrícula Sugerida (Grid) */}
+          <Grid px={px} py={py} base={base} zoom={zoom} pan={pan} />
+
           {/* Ejes: la horizontal y=0 y la vertical x=0 (si caen dentro). */}
           <line className="pl-axis" x1={0} y1={ejeY0} x2={ANCHO} y2={ejeY0} />
-          {ejeX0 >= 0 && ejeX0 <= ANCHO && (
+          {ejeX0 >= -ANCHO && ejeX0 <= ANCHO * 2 && (
             <line className="pl-axis pl-axis--y" x1={ejeX0} y1={0} x2={ejeX0} y2={ALTO} />
           )}
 
@@ -260,6 +263,91 @@ const Plot = forwardRef(function Plot({ theme, method, fn, pasos, pasoActual, fa
     </div>
   );
 });
+
+/**
+ * Grid
+ * Calcula y dibuja las líneas de cuadrícula y los valores numéricos.
+ */
+function Grid({ px, py, base, zoom, pan }) {
+  const { xMin, xMax, yMin, yMax } = base;
+
+  // Calculamos un intervalo "bonito" según el rango visible
+  const getStep = (range) => {
+    const rawStep = range / (6 * zoom);
+    const mag = Math.pow(10, Math.floor(Math.log10(rawStep)));
+    const res = rawStep / mag;
+    if (res < 1.5) return 1 * mag;
+    if (res < 3.5) return 2 * mag;
+    if (res < 7.5) return 5 * mag;
+    return 10 * mag;
+  };
+
+  const stepX = getStep(xMax - xMin);
+  const stepY = getStep(yMax - yMin);
+
+  // Rangos para las líneas
+  const startX = Math.floor((xMin - Math.abs(pan.x/zoom)) / stepX) * stepX;
+  const endX = Math.ceil((xMax + Math.abs(pan.x/zoom)) / stepX) * stepX;
+  const startY = Math.floor((yMin - Math.abs(pan.y/zoom)) / stepY) * stepY;
+  const endY = Math.ceil((yMax + Math.abs(pan.y/zoom)) / stepY) * stepY;
+
+  const ticksX = [];
+  for (let x = startX - stepX * 10; x <= endX + stepX * 10; x += stepX) {
+    const posX = px(x);
+    if (posX >= -50 && posX <= ANCHO + 50) {
+      ticksX.push({ val: x, pos: posX });
+    }
+  }
+
+  const ticksY = [];
+  for (let y = startY - stepY * 10; y <= endY + stepY * 10; y += stepY) {
+    const posY = py(y);
+    if (posY >= -50 && posY <= ALTO + 50) {
+      ticksY.push({ val: y, pos: posY });
+    }
+  }
+
+  const ejeY0 = py(0);
+  const ejeX0 = px(0);
+
+  return (
+    <g className="pl-grid-group">
+      {/* Líneas Verticales y Números en X */}
+      {ticksX.map(t => (
+        <g key={`x-${t.val}`}>
+          {Math.abs(t.val) > 1e-9 && (
+            <line className="pl-grid-line" x1={t.pos} y1={0} x2={t.pos} y2={ALTO} />
+          )}
+          <text 
+            className="pl-grid-label" 
+            x={t.pos} 
+            y={ejeY0 > 0 && ejeY0 < ALTO ? ejeY0 + 15 : ALTO - 10} 
+            textAnchor="middle"
+          >
+            {parseFloat(t.val.toFixed(8))}
+          </text>
+        </g>
+      ))}
+
+      {/* Líneas Horizontales y Números en Y */}
+      {ticksY.map(t => (
+        <g key={`y-${t.val}`}>
+          {Math.abs(t.val) > 1e-9 && (
+            <line className="pl-grid-line" x1={0} y1={t.pos} x2={ANCHO} y2={t.pos} />
+          )}
+          <text 
+            className="pl-grid-label" 
+            x={ejeX0 > 0 && ejeX0 < ANCHO ? ejeX0 - 8 : 10} 
+            y={t.pos + 4} 
+            textAnchor={ejeX0 > 0 && ejeX0 < ANCHO ? "end" : "start"}
+          >
+            {parseFloat(t.val.toFixed(8))}
+          </text>
+        </g>
+      ))}
+    </g>
+  );
+}
 
 /*
  * BiseccionOverlay

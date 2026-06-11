@@ -529,13 +529,6 @@ function MathKeyboard({ onInsert, onClear, onCalculate, onClose }) {
               ))}
             </React.Fragment>
           ))}
-          <button
-            type="button"
-            className="cvg-math-btn cvg-math-btn--action cvg-math-btn--equal"
-            onClick={onCalculate}
-          >
-            =
-          </button>
         </div>
       </div>
     </div>
