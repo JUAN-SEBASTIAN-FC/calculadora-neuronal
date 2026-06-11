@@ -502,3 +502,124 @@ body { overflow: hidden; }
 }
 
 @media (pointer: coarse) { .plot-hint { display: none; } }
+/* ---------------------------------------------------------------------------
+   11 · TECLADO CIENTÍFICO
+   Diseño de cuadrícula, glassmorphism y colores temáticos.
+   --------------------------------------------------------------------------- */
+.cvg-math-keyboard {
+  margin-top: var(--space-2);
+  padding: var(--space-4);
+  background: var(--glass-fill);
+  backdrop-filter: var(--blur-md);
+  -webkit-backdrop-filter: var(--blur-md);
+  border: 1px solid var(--glass-stroke);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  animation: fadeSlide var(--dur-base) var(--ease-out);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.cvg-math-keyboard__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--text-2xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+}
+
+.cvg-math-keyboard__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.cvg-math-keyboard__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.cvg-math-btn {
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-standard);
+  background: var(--surface-sunken);
+  color: var(--text-secondary);
+}
+
+.cvg-math-btn:hover {
+  transform: translateY(-1.5px);
+  filter: brightness(1.15);
+  box-shadow: var(--shadow-sm);
+}
+
+.cvg-math-btn:active {
+  transform: translateY(0);
+}
+
+/* Colores por tipo de botón */
+.cvg-math-btn--num {
+  background: var(--surface-panel);
+  color: var(--text-primary);
+  border-color: var(--border-subtle);
+}
+
+.cvg-math-btn--var {
+  background: var(--grad-brand-soft);
+  color: var(--blue-500);
+  border-color: rgba(45,127,249,0.15);
+}
+
+.cvg-math-btn--op {
+  background: color-mix(in srgb, var(--violet-stop) 10%, transparent);
+  color: var(--violet-stop);
+  border-color: rgba(109,91,255,0.15);
+}
+
+.cvg-math-btn--fn {
+  background: color-mix(in srgb, var(--cyan-400) 10%, transparent);
+  color: var(--cyan-600);
+  border-color: rgba(18,166,214,0.15);
+}
+
+.cvg-math-btn--danger {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.2);
+  padding: 0 10px;
+  height: 28px;
+  font-size: 10px;
+}
+
+.cvg-math-btn--equal {
+  grid-column: span 2;
+  background: var(--grad-brand);
+  color: #fff;
+  font-size: var(--text-lg);
+  box-shadow: 0 4px 12px rgba(109,91,255,0.3);
+}
+
+:root[data-theme="dark"] .cvg-math-btn--fn {
+  color: var(--cyan-300);
+}
+
+@media (max-width: 420px) {
+  .cvg-math-keyboard__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .cvg-math-btn--equal {
+    grid-column: span 3;
+  }
+}

@@ -87,7 +87,9 @@ function App() {
   const [pasoActual, setPasoActual] = useState(0);   // índice del paso visible
   const [error, setError] = useState('');            // mensaje de error de entrada
   const [reproduciendo, setReproduciendo] = useState(false);
+  const [showKeyboard, setShowKeyboard] = useState(false); // controla la visibilidad del teclado
   const plotRef = useRef(null);                      // controles de zoom de la gráfica
+  const inputRef = useRef(null);                     // referencia al input de f(x) para insertar texto
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -168,6 +170,30 @@ function App() {
     setPasoActual(0);
     setError('');
     setReproduciendo(false);
+  }
+
+  /**
+   * Inserta texto en el input de f(x) en la posición actual del cursor.
+   * Si hay texto seleccionado, lo reemplaza. Después de insertar,
+   * devuelve el foco al input.
+   */
+  function insertToFnInput(text) {
+    const input = inputRef.current;
+    if (!input) return;
+
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+    const currentVal = fnInput;
+
+    const newVal = currentVal.substring(0, start) + text + currentVal.substring(end);
+    setFnInput(newVal);
+
+    // Esperar al siguiente ciclo de renderizado para posicionar el cursor
+    setTimeout(() => {
+      input.focus();
+      const newPos = start + text.length;
+      input.setSelectionRange(newPos, newPos);
+    }, 0);
   }
 
   // --- Navegación entre iteraciones (transporte) ---
@@ -260,9 +286,34 @@ function App() {
 
           <div className="section">
             <span className="eyebrow">Función</span>
-            <Input monoLabel label="f(x)" prefix="f(x) =" value={fnInput} placeholder="ej. x^3 - x - 2"
+            <Input
+              ref={inputRef}
+              monoLabel
+              label="f(x)"
+              prefix="f(x) ="
+              value={fnInput}
+              placeholder="ej. x^3 - x - 2"
               onChange={(e) => setFnInput(e.target.value)}
-              hint="Usa x, +−*/^, sin, cos, exp, ln, sqrt…" />
+              hint="Usa x, +−*/^, sin, cos, exp, ln, sqrt…"
+              suffix={
+                <IconButton
+                  icon="calculator"
+                  size="sm"
+                  variant={showKeyboard ? 'primary' : 'default'}
+                  onClick={() => setShowKeyboard(!showKeyboard)}
+                  label="Teclado científico"
+                />
+              }
+            />
+
+            {showKeyboard && (
+              <MathKeyboard
+                onInsert={insertToFnInput}
+                onClear={() => setFnInput('')}
+                onCalculate={calcular}
+                onClose={() => setShowKeyboard(false)}
+              />
+            )}
           </div>
 
           <div className="section">
@@ -396,6 +447,96 @@ function App() {
             <div className="line"><span className="k">Estado</span><span className="v">{resultado ? (resultado.convergio ? 'Convergió' : 'Sin converger') : 'En espera'}</span></div>
           </div>
         </aside>
+      </div>
+    </div>
+  );
+}
+
+
+/**
+ * Componente del teclado científico expandido.
+ * Muestra números, operadores, funciones y controles de ejecución.
+ */
+function MathKeyboard({ onInsert, onClear, onCalculate, onClose }) {
+  const categories = [
+    {
+      label: 'Números',
+      items: [
+        { text: '7', label: '7', variant: 'num' },
+        { text: '8', label: '8', variant: 'num' },
+        { text: '9', label: '9', variant: 'num' },
+        { text: '4', label: '4', variant: 'num' },
+        { text: '5', label: '5', variant: 'num' },
+        { text: '6', label: '6', variant: 'num' },
+        { text: '1', label: '1', variant: 'num' },
+        { text: '2', label: '2', variant: 'num' },
+        { text: '3', label: '3', variant: 'num' },
+        { text: '0', label: '0', variant: 'num' },
+        { text: '.', label: '.', variant: 'num' },
+        { text: 'x', label: 'x', variant: 'var' },
+      ]
+    },
+    {
+      label: 'Operadores',
+      items: [
+        { text: '+', label: '+', variant: 'op' },
+        { text: '-', label: '-', variant: 'op' },
+        { text: '*', label: '×', variant: 'op' },
+        { text: '/', label: '÷', variant: 'op' },
+        { text: '^', label: '^', variant: 'op' },
+        { text: '(', label: '(', variant: 'op' },
+        { text: ')', label: ')', variant: 'op' },
+        { text: 'pi', label: 'π', variant: 'var' },
+        { text: 'e', label: 'e', variant: 'var' },
+      ]
+    },
+    {
+      label: 'Funciones',
+      items: [
+        { text: 'sin(', label: 'sin', variant: 'fn' },
+        { text: 'cos(', label: 'cos', variant: 'fn' },
+        { text: 'tan(', label: 'tan', variant: 'fn' },
+        { text: 'sqrt(', label: '√', variant: 'fn' },
+        { text: 'ln(', label: 'ln', variant: 'fn' },
+        { text: 'exp(', label: 'exp', variant: 'fn' },
+      ]
+    }
+  ];
+
+  return (
+    <div className="cvg-math-keyboard">
+      <div className="cvg-math-keyboard__header">
+        <span>Teclado Científico</span>
+        <div className="cvg-math-keyboard__actions">
+          <button type="button" className="cvg-math-btn cvg-math-btn--danger" onClick={onClear}>AC</button>
+          <IconButton icon="x" size="xs" onClick={onClose} label="Cerrar" />
+        </div>
+      </div>
+
+      <div className="cvg-math-keyboard__main">
+        <div className="cvg-math-keyboard__grid cvg-math-keyboard__grid--main">
+          {categories.map((cat) => (
+            <React.Fragment key={cat.label}>
+              {cat.items.map((item) => (
+                <button
+                  key={item.text}
+                  type="button"
+                  className={`cvg-math-btn cvg-math-btn--${item.variant}`}
+                  onClick={() => onInsert(item.text)}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </React.Fragment>
+          ))}
+          <button
+            type="button"
+            className="cvg-math-btn cvg-math-btn--action cvg-math-btn--equal"
+            onClick={onCalculate}
+          >
+            =
+          </button>
+        </div>
       </div>
     </div>
   );
