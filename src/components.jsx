@@ -112,8 +112,8 @@ function Card({ variant = 'solid', title, actions, children, bodyClassName = '',
 }
 
 // ---- components/forms/Input.jsx ----
-/** Text input field. The function input (f(x)) is the canonical use — monospace by default. */
-function Input({
+/** Campo de entrada de texto. El uso principal es la función (f(x)), monoespaciado por defecto. */
+const Input = React.forwardRef(({
   label,
   hint,
   error,
@@ -124,7 +124,7 @@ function Input({
   id,
   required,
   ...rest
-}) {
+}, ref) => {
   const fid = id || useId();
   const cls = ['cvg-field', error && 'cvg-field--error', monoLabel && 'cvg-field--mono-label', className].filter(Boolean).join(' ');
   return (
@@ -136,13 +136,13 @@ function Input({
       )}
       <div className="cvg-field__control">
         {prefix && <span className="cvg-field__prefix">{prefix}</span>}
-        <input id={fid} className="cvg-field__input" {...rest} />
+        <input ref={ref} id={fid} className="cvg-field__input" {...rest} />
         {suffix && <span className="cvg-field__suffix">{suffix}</span>}
       </div>
       {(hint || error) && <span className="cvg-field__hint">{error || hint}</span>}
     </div>
   );
-}
+});
 
 // ---- components/forms/NumberField.jsx ----
 /** Numeric field with up/down steppers — iterations, x0, interval bounds. */
