@@ -86,8 +86,15 @@ export function newton(f, x0, tolerancia = 1e-6, maxIter = 50) {
       converged: false,
     });
 
-    // ¿Ya convergió? Paramos si f(xn) es 0 o si el error es menor a la tolerancia.
-    if (fx === 0 || errorRel < tolerancia) {
+    // ¿Ya convergió? Paramos si:
+    //   - f(xn) es prácticamente 0 (ya estamos en la raíz), o
+    //   - el salto de xn a xNuevo es menor que la tolerancia.
+    // Usamos el criterio mixto tol*(1+|xNuevo|) en vez del error relativo a
+    // secas: el relativo divide entre xNuevo y EXPLOTA cuando la raíz es 0
+    // (ej. x^3), impidiendo converger aunque ya estemos en la raíz.
+    const umbral = tolerancia * (1 + Math.abs(xNuevo));
+    const fxCasiCero = Math.abs(fx) < tolerancia;
+    if (fx === 0 || fxCasiCero || errorAbs < umbral) {
       pasos[pasos.length - 1].converged = true;
       return {
         pasos,

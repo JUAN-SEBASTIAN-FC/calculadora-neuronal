@@ -102,8 +102,18 @@ export function biseccion(f, a, b, tolerancia = 1e-6, maxIter = 50) {
     });
 
     // 4) ¿Ya es suficientemente bueno?
-    //    Paramos si f(c) es prácticamente 0, o si el error es muy chico.
-    if (fc === 0 || (errorRel !== null && errorRel < tolerancia)) {
+    //    Paramos si:
+    //      - f(c) es prácticamente 0 (ya estamos en la raíz), o
+    //      - el cambio entre puntos es menor que la tolerancia.
+    //    OJO: usamos un criterio que mezcla error absoluto y relativo
+    //    (tol * (1 + |c|)). El error relativo SOLO se rompe cuando la raíz
+    //    es 0 (al dividir entre c≈0 explota), por eso aquí no decidimos con
+    //    'errorRel' sino con el cambio absoluto comparado contra esa escala.
+    //    Así  x^3  (raíz en 0) ahora SÍ converge, igual que x^2-4.
+    const cambio = errorAbs;          // |c_n - c_{n-1}|
+    const umbral = tolerancia * (1 + Math.abs(c));
+    const fcCasiCero = Math.abs(fc) < tolerancia;
+    if (fc === 0 || fcCasiCero || (cambio !== null && cambio < umbral)) {
       pasos[pasos.length - 1].converged = true;
       return {
         pasos,
