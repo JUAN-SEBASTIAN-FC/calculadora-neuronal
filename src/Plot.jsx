@@ -102,7 +102,10 @@ const Plot = forwardRef(function Plot({ theme, method, fn, pasos, pasoActual, fa
   const base = useMemo(() => {
     if (!fn || !pasos || !pasos.length) return null;
 
-    // Rango horizontal a partir de todas las x que aparecen en los pasos.
+    // ----- Rango horizontal -----
+    // Reunimos todas las x relevantes: extremos del intervalo, aproximaciones
+    // de cada paso, y la raíz final. Así la gráfica siempre encuadra TODO el
+    // recorrido del método, no solo una parte.
     let xs = [];
     for (const p of pasos) {
       if (p.a != null) xs.push(p.a);
@@ -112,24 +115,101 @@ const Plot = forwardRef(function Plot({ theme, method, fn, pasos, pasoActual, fa
     }
     let xMin = Math.min(...xs);
     let xMax = Math.max(...xs);
-    if (xMin === xMax) { xMin -= 1; xMax += 1; }
-    const margenX = (xMax - xMin) * 0.3 + 0.5;
-    xMin -= margenX; xMax += margenX;
+    if (xMin === xMax) { xMin -= 2; xMax += 2; } // raíz en un punto: abrimos vista
 
-    // Evaluar f(x) en muchos puntos para conocer el rango vertical y la curva.
-    const N = 260;
+    // Centro de la zona de interés (donde ocurre el método / la raíz).
+    const centro = (xMin + xMax) / 2;
+
+    // Ancho de la zona de interés + un margen lateral generoso.
+    let ancho = (xMax - xMin) * (1 + 2 * 0.6); // 60% de margen a cada lado
+
+    // Ancho MÍNIMO: si el método se mueve en una franja diminuta (típico en
+    // Newton, donde las x apenas cambian), igual mostramos una ventana amplia
+    // para que la curva atraviese el lienzo de lado a lado y no quede una
+    // raya corta rodeada de espacio en blanco.
+    const ANCHO_MIN = 8;
+    if (ancho < ANCHO_MIN) ancho = ANCHO_MIN;
+
+    xMin = centro - ancho / 2;
+    xMax = centro + ancho / 2;
+
+    // ----- Curva: evaluamos f(x) en muchos puntos -----
+    const N = 400; // más puntos = curva más suave y picos mejor representados
     const puntos = [];
-    let yMin = Infinity, yMax = -Infinity;
+    const ysFinitos = []; // solo valores finitos, para estimar el rango Y robusto
     for (let i = 0; i <= N; i++) {
       const x = xMin + (xMax - xMin) * (i / N);
       const y = fn(x);
       puntos.push({ x, y });
-      if (Number.isFinite(y)) { if (y < yMin) yMin = y; if (y > yMax) yMax = y; }
+      if (Number.isFinite(y)) ysFinitos.push(y);
     }
-    yMin = Math.min(yMin, 0); yMax = Math.max(yMax, 0);
-    if (yMin === yMax) { yMin -= 1; yMax += 1; }
-    const margenY = (yMax - yMin) * 0.18;
+
+    // ----- Rango vertical ROBUSTO -----
+    // Problema clásico: con x^2, ln(x), tan(x), 1/x... el min/max absoluto
+    // se dispara (un solo valor enorme) y aplasta toda la curva contra el eje,
+    // dejando la zona de la raíz invisible. Solución: recortamos los valores
+    // extremos usando percentiles (descartamos el 4% más alto y más bajo) para
+    // que el encuadre siga la MASA de la curva, no sus picos.
+    let yMin, yMax;
+    if (ysFinitos.length) {
+      const ord = [...ysFinitos].sort((p, q) => p - q);
+      const pct = (f) => ord[Math.min(ord.length - 1, Math.max(0, Math.floor(f * (ord.length - 1))))];
+      // Recortamos solo un 2% por extremo: suficiente para domar asíntotas
+      // (tan, 1/x), pero sin "cortar" curvas suaves que sí queremos ver enteras.
+      yMin = pct(0.02);
+      yMax = pct(0.98);
+    } else {
+      yMin = -1; yMax = 1;
+    }
+
+    // Garantizamos que el eje X (y = 0) y los f(x) de los pasos sean visibles:
+    // ahí es donde está la raíz, lo más importante de la escena.
+    yMin = Math.min(yMin, 0);
+    yMax = Math.max(yMax, 0);
+    for (const p of pasos) {
+      if (p.fx != null && Number.isFinite(p.fx)) {
+        yMin = Math.min(yMin, p.fx);
+        yMax = Math.max(yMax, p.fx);
+      }
+    }
+
+    if (!Number.isFinite(yMin) || !Number.isFinite(yMax) || yMin === yMax) {
+      yMin = (Number.isFinite(yMin) ? yMin : 0) - 1;
+      yMax = (Number.isFinite(yMax) ? yMax : 0) + 1;
+    }
+    const margenY = (yMax - yMin) * 0.12 + 1e-6;
     yMin -= margenY; yMax += margenY;
+
+    // ----- Rellenar el lienzo SIN deformar la curva -----
+    // El lienzo es más ancho que alto. Si la curva queda como una banda fina
+    // (mucho espacio en blanco arriba/abajo, como pasaba en Newton) expandimos
+    // el eje que va "sobrado", PERO con un límite: nunca estiramos tanto que la
+    // curva se aplaste en una raya. Para funciones que crecen rápido (x^2, x^3)
+    // el rango ya es grande y este ajuste casi no actúa, que es lo correcto.
+    const aspectoLienzo = (ANCHO - 2 * MARGEN) / (ALTO - 2 * MARGEN);
+    const EXPANSION_MAX = 2.2; // como mucho duplicamos un poco un eje
+    const anchoX = xMax - xMin;
+    const altoY = yMax - yMin;
+    const aspectoDatos = anchoX / altoY;
+
+    if (aspectoDatos > aspectoLienzo) {
+      // Sobra alto: la curva es una banda horizontal. Expandimos Y (acotado).
+      const factor = Math.min(aspectoDatos / aspectoLienzo, EXPANSION_MAX);
+      const cy = (yMin + yMax) / 2;
+      yMin = cy - (altoY * factor) / 2;
+      yMax = cy + (altoY * factor) / 2;
+    } else if (aspectoLienzo / aspectoDatos > 1) {
+      // Sobra ancho: expandimos X (acotado) y recalculamos la curva.
+      const factor = Math.min(aspectoLienzo / aspectoDatos, EXPANSION_MAX);
+      const cx = (xMin + xMax) / 2;
+      xMin = cx - (anchoX * factor) / 2;
+      xMax = cx + (anchoX * factor) / 2;
+      puntos.length = 0;
+      for (let i = 0; i <= N; i++) {
+        const x = xMin + (xMax - xMin) * (i / N);
+        puntos.push({ x, y: fn(x) });
+      }
+    }
 
     return { xMin, xMax, yMin, yMax, puntos };
   }, [fn, pasos]);
@@ -193,14 +273,26 @@ const Plot = forwardRef(function Plot({ theme, method, fn, pasos, pasoActual, fa
     const px = (x) => cx + (px0(x) - cx) * zoom + pan.x;
     const py = (y) => cy + (py0(y) - cy) * zoom + pan.y;
 
-    // Path de la curva uniendo los puntos (se corta si f(x) no es finito).
+    // Path de la curva uniendo los puntos.
+    // Cortamos el trazo en dos situaciones:
+    //   1) f(x) no es finito (hueco del dominio, ej. ln de negativo).
+    //   2) Hay un SALTO enorme entre dos puntos seguidos (asíntota vertical,
+    //      como en tan(x) o 1/x). Sin esto se dibujaría una raya vertical falsa
+    //      que cruza toda la pantalla. Si el brinco vertical en pantalla supera
+    //      varias veces el alto del lienzo, levantamos el lápiz.
+    const SALTO_MAX = ALTO * 3; // umbral de salto en píxeles del dibujo
     let d = '';
     let romper = true;
+    let Yprev = null;
     for (const p of puntos) {
-      if (!Number.isFinite(p.y)) { romper = true; continue; }
+      if (!Number.isFinite(p.y)) { romper = true; Yprev = null; continue; }
       const X = px(p.x), Y = py(p.y);
+      if (!romper && Yprev != null && Math.abs(Y - Yprev) > SALTO_MAX) {
+        romper = true; // salto sospechoso (asíntota): cortamos aquí
+      }
       d += (romper ? 'M' : 'L') + X.toFixed(1) + ' ' + Y.toFixed(1) + ' ';
       romper = false;
+      Yprev = Y;
     }
 
     return { px, py, d };

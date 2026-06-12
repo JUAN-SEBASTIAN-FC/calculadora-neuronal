@@ -24,8 +24,14 @@
  * ----------------------------------------------------------------------------
  */
 
-/* Prioridad de cada operador. Mayor número = se calcula primero. */
-const PRIORIDAD = { '+': 1, '-': 1, '*': 2, '/': 2, '^': 3 };
+/* Prioridad de cada operador. Mayor número = se calcula primero.
+   'neg' es la negación unaria (el "menos" de un solo número, ej. -x).
+   Está ENTRE la multiplicación y la potencia (mayor que * /, menor que ^).
+   Esto reproduce la convención matemática estándar:
+       -x^2  =  -(x^2) = -9     (la potencia liga más que el menos)
+       e^-x  =   e^(-x)         (porque '^' asocia por la derecha, y el 'neg'
+                                  que aparece DESPUÉS del '^' se aplica primero) */
+const PRIORIDAD = { '+': 1, '-': 1, '*': 2, '/': 2, 'neg': 3, '^': 4 };
 
 /* Funciones de una entrada que aceptamos en el texto (sin, cos, raíz...).
    Cada una se calcula con código nuestro, sin librerías matemáticas. */
@@ -51,6 +57,24 @@ function tokenizar(texto) {
 
   // Quitamos espacios y unificamos algunos símbolos comunes.
   texto = texto.replace(/\s+/g, '');
+
+  // Símbolos "bonitos" que la gente copia/pega -> su versión normal.
+  //   × ÷ • · -> * /     ,  -> .  (coma decimal)
+  texto = texto
+    .replace(/[×∙•·]/g, '*')
+    .replace(/[÷]/g, '/')
+    .replace(/,/g, '.');
+
+  // Superíndices Unicode (x², x³, 2⁻¹...) -> notación con "^".
+  //   x²  ->  x^2     x³  ->  x^3     x⁻¹ -> x^-1
+  const SUPER = { '⁰': '0', '¹': '1', '²': '2', '³': '3', '⁴': '4',
+                  '⁵': '5', '⁶': '6', '⁷': '7', '⁸': '8', '⁹': '9',
+                  '⁺': '+', '⁻': '-' };
+  texto = texto.replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻]+/g, (run) => {
+    let exp = '';
+    for (const ch of run) exp += SUPER[ch];
+    return '^(' + exp + ')';
+  });
 
   while (i < texto.length) {
     const c = texto[i];
@@ -101,18 +125,53 @@ function tokenizar(texto) {
     throw new Error('Símbolo no válido: "' + c + '"');
   }
 
-  // ----- Arreglar el signo menos "unario" (ej. -x, o 3*(-2)) -----
-  // Si un "-" aparece al inicio o justo después de "(" o de otro operador,
-  // en realidad significa "0 - ...", así que insertamos un 0 adelante.
+  // ----- Multiplicación IMPLÍCITA (lo que la gente escribe de verdad) -----
+  // Insertamos un "*" donde dos piezas se multiplican sin escribir el signo:
+  //   2x        -> 2*x        3x^2      -> 3*x^2
+  //   2sin(x)   -> 2*sin(x)   2pi       -> 2*pi
+  //   x(x+1)    -> x*(x+1)    (x+1)(x-1)-> (x+1)*(x-1)
+  //   2(x+1)    -> 2*(x+1)
+  // Regla: si un token CIERRA un valor (número, x, ")") y el siguiente ABRE
+  // otro valor (número, x, "(", o el nombre de una función), va un "*" en medio.
+  const cierraValor = (t) =>
+    t.tipo === 'numero' || t.tipo === 'variable' ||
+    (t.tipo === 'parentesis' && t.valor === ')');
+  const abreValor = (t) =>
+    t.tipo === 'numero' || t.tipo === 'variable' || t.tipo === 'funcion' ||
+    (t.tipo === 'parentesis' && t.valor === '(');
+
+  const conMult = [];
+  for (let k = 0; k < tokens.length; k++) {
+    if (k > 0 && cierraValor(tokens[k - 1]) && abreValor(tokens[k])) {
+      conMult.push({ tipo: 'operador', valor: '*' });
+    }
+    conMult.push(tokens[k]);
+  }
+  tokens.length = 0;
+  tokens.push(...conMult);
+
+  // ----- Arreglar los signos "+" y "-" UNARIOS (ej. -x, +x, 3*(-2), e^-x) -----
+  // Un "-" (o "+") es unario si aparece al inicio, justo después de "(" o
+  // después de otro operador. Lo convertimos en un operador especial:
+  //   '-'  ->  'neg'  (negación, "menos de un solo número")
+  //   '+'  ->  se ignora (un más unario no cambia nada)
+  //
+  // ¿Por qué un operador propio y no "insertar un 0 adelante"?
+  // Porque "0 - algo" tiene la prioridad de la resta (baja), y eso rompe
+  // casos como  e^-x : se leía como (e^0) - x.  La negación de verdad debe
+  // ligarse MÁS fuerte que la potencia, igual que en matemáticas:
+  //   e^-x  =  e^(-x)      2^-3 = 2^(-3) = 0.125
   const arreglados = [];
   for (let k = 0; k < tokens.length; k++) {
     const t = tokens[k];
     const anterior = tokens[k - 1];
-    const esMenosUnario =
-      t.tipo === 'operador' && t.valor === '-' &&
+    const esUnario =
+      t.tipo === 'operador' && (t.valor === '-' || t.valor === '+') &&
       (!anterior || anterior.valor === '(' || anterior.tipo === 'operador');
-    if (esMenosUnario) {
-      arreglados.push({ tipo: 'numero', valor: 0 });
+    if (esUnario) {
+      if (t.valor === '-') arreglados.push({ tipo: 'operador', valor: 'neg', unario: true });
+      // el "+" unario no hace nada, simplemente no lo agregamos
+      continue;
     }
     arreglados.push(t);
   }
@@ -136,15 +195,24 @@ function aPostfija(tokens) {
       salida.push(t);
     } else if (t.tipo === 'funcion') {
       pila.push(t);
+    } else if (t.tipo === 'operador' && t.valor === 'neg') {
+      // 'neg' es un operador UNARIO PREFIJO (se escribe antes de su operando)
+      // y asocia por la DERECHA. Un prefijo nunca "saca" a lo que está debajo
+      // en la pila esperando su operando; solo se apila. Así, en e^-x el 'neg'
+      // queda encima del '^' y se aplica primero a x  ->  e^(-x); y en --x los
+      // dos 'neg' se apilan y salen en el orden correcto al final.
+      pila.push(t);
     } else if (t.tipo === 'operador') {
-      // Sacamos de la pila los operadores que tengan prioridad mayor o igual.
-      // El "^" se trata por la derecha, por eso usamos ">" en vez de ">=".
+      // Operadores binarios. Sacamos de la pila los de prioridad mayor o igual.
+      // El "^" asocia por la DERECHA, por eso para él usamos ">" (no ">=").
+      // El 'neg' (prioridad 3) siempre se queda encima: liga más que +,-,*,/.
+      const asociaDerecha = (t.valor === '^');
       while (pila.length) {
         const tope = pila[pila.length - 1];
         const mismaOmayor =
           tope.tipo === 'operador' &&
-          (t.valor === '^' ? PRIORIDAD[tope.valor] > PRIORIDAD[t.valor]
-                           : PRIORIDAD[tope.valor] >= PRIORIDAD[t.valor]);
+          (asociaDerecha ? PRIORIDAD[tope.valor] > PRIORIDAD[t.valor]
+                         : PRIORIDAD[tope.valor] >= PRIORIDAD[t.valor]);
         if (mismaOmayor || tope.tipo === 'funcion') salida.push(pila.pop());
         else break;
       }
@@ -183,15 +251,27 @@ function aPostfija(tokens) {
 function evaluar(postfija, x) {
   const pila = [];
 
+  // Mensaje único y claro cuando faltan operandos (fórmula a medias, ej. "x+").
+  const incompleta = () => new Error(
+    'La función está incompleta: revisa que no falte un número o un operador (ej. "x +").'
+  );
+
   for (const t of postfija) {
     if (t.tipo === 'numero') {
       pila.push(t.valor);
     } else if (t.tipo === 'variable') {
       pila.push(x);
     } else if (t.tipo === 'funcion') {
+      if (pila.length < 1) throw incompleta();
       const a = pila.pop();
       pila.push(FUNCIONES[t.valor](a));
+    } else if (t.tipo === 'operador' && t.valor === 'neg') {
+      // Negación unaria: -valor. Saca UN solo número de la pila.
+      if (pila.length < 1) throw incompleta();
+      const a = pila.pop();
+      pila.push(-a);
     } else if (t.tipo === 'operador') {
+      if (pila.length < 2) throw incompleta(); // un operador binario necesita 2 valores
       const b = pila.pop(); // segundo operando
       const a = pila.pop(); // primer operando
       let r;
@@ -207,7 +287,11 @@ function evaluar(postfija, x) {
     }
   }
 
-  if (pila.length !== 1) throw new Error('La función está incompleta.');
+  if (pila.length === 0) throw incompleta();
+  if (pila.length > 1) {
+    // Sobran valores sin operación que los una (ej. "2 3" o "x 5").
+    throw new Error('La función tiene partes sueltas: ¿falta un operador entre dos valores?');
+  }
   return pila[0];
 }
 
@@ -226,7 +310,15 @@ export function compilarFuncion(texto) {
   const tokens = tokenizar(texto);
   const postfija = aPostfija(tokens);
 
-  // Probamos evaluar en un punto para detectar errores de inmediato.
+  if (!postfija.length) {
+    throw new Error('Escribe una función, por ejemplo: x^3 - x - 2');
+  }
+
+  // Probamos evaluar en un punto para detectar errores de ESTRUCTURA de una vez
+  // (operandos faltantes, partes sueltas...). Que el resultado sea NaN/Infinity
+  // en este punto concreto NO es un error: puede ser un hueco del dominio
+  // (ej. sqrt o ln en valores negativos). Solo nos importa que la fórmula esté
+  // bien armada; los huecos los maneja la gráfica cortando el trazo.
   evaluar(postfija, 1);
 
   // f(x) reutiliza la postfija ya calculada.

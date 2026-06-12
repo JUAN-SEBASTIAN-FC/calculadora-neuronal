@@ -44,6 +44,26 @@ export function biseccion(f, a, b, tolerancia = 1e-6, maxIter = 50) {
   let fa = f(a);
   let fb = f(b);
 
+  // Caso especial: la raíz YA está exactamente en un extremo (f(a)=0 o f(b)=0).
+  // Sin esto, el método se "iría de largo" hacia el lado equivocado y
+  // terminaría reportando una raíz falsa (era el bug de x^2-9 en [3,5]).
+  if (fa === 0) {
+    return {
+      pasos: [{ n: 1, a: a, b: b, x: a, fx: 0, absError: 0, relError: 0, converged: true }],
+      raiz: a,
+      convergio: true,
+      mensaje: 'La raíz está exactamente en el extremo a = ' + a + '.',
+    };
+  }
+  if (fb === 0) {
+    return {
+      pasos: [{ n: 1, a: a, b: b, x: b, fx: 0, absError: 0, relError: 0, converged: true }],
+      raiz: b,
+      convergio: true,
+      mensaje: 'La raíz está exactamente en el extremo b = ' + b + '.',
+    };
+  }
+
   // Comprobación clave: la función DEBE cambiar de signo en [a, b].
   if (fa * fb > 0) {
     return {
